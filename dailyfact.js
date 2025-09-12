@@ -294,5 +294,8 @@ console.log(`\x1b[1m${finalGeminiResponse}\x1b[0m`); // snippet em negrito
 if(fonte){
     console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
 }
+if(!fonte){
+    console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
+}
 
 console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
