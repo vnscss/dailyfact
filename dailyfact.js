@@ -11,7 +11,7 @@ const cx = process.env.GOOGLE_CX_ID;
 let google_search_string = `"em ${day} de ${month}" (tecnologia OR ciência OR inovação OR software OR hardware OR internet OR cibersegurança) site:tecmundo.com.br OR site:canaltech.com.br OR site:olhardigital.com.br OR site:showmetech.com.br OR site:theverge.com OR site:wired.com OR site:engadget.com OR site:techradar.com OR site:arstechnica.com`
 
 
-let fatcs = [];
+let facts = [];
 
 
 //Fatos da wiki
@@ -21,10 +21,16 @@ let wiki_document = await fetch(wiki_url).then(res => res.text());
 
 wiki_document = wiki_document.match(/<ul(?![^>]*(class|id))>([\s\S]*?)<\/ul>/);
 
-let wiki_facts = wiki_document[0].split("<li>").slice(1).map(fact => {
+wiki_document[0].split("<li>").slice(1).map(fact => {
+    let snippet = fact.replace("</li>", "").replace('</ul>' , "")
 
-    let single_fact = fact.replace("</li>", "").replace('</ul>' , "")
-    fatcs.push(single_fact)
+    let single_fact = {
+        title: null,
+        snippet: snippet,
+        link: null,
+    }
+
+    facts.push(single_fact)
 });
 
 
@@ -47,12 +53,13 @@ if (items) {
             snippet: item.snippet,
             link: item.link
         }
-        fatcs.push(fact)
+        facts.push(fact)
     });
-} else {
-    console.log('Nenhum resultado encontrado.');
+} 
+} catch (err) {
 }
 
-} catch (err) {
-console.error('Erro na pesquisa:', err);
-}
+
+facts.forEach((fact, index) => {
+  fact.index = index; 
+});
