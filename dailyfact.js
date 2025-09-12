@@ -2,6 +2,8 @@ import 'dotenv/config'; // carrega automaticamente as variáveis do .env
 import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
+import * as fs from "fs";
+
 
 
 let args = process.argv.slice(2);
@@ -172,40 +174,14 @@ async function gemini(system_instructions , promptString , responseSchema){
 
 
 
-let select_best_fact_system_instructions = `**Sua tarefa é selecionar o index (0-baseado) do único item que representa um acontecimento curioso sobre Tecnologia, Cultura Geek, Cultura Nerd, ou Programação, especificamente para o dia ${day} de ${month}.**
+let filePath = "./prompts/select_best_fact_system_instructions.txt";
+let content = fs.readFileSync(filePath, "utf8");
+content = content
+  .replace(/\$\{day\}/g, day)
+  .replace(/\$\{month\}/g, month);
 
-**REGRAS DE SELEÇÃO OBRIGATÓRIAS (Processamento Sequencial):**
+let select_best_fact_system_instructions = content
 
-1.  **DESQUALIFICAÇÃO IMEDIATA (IGNORAR ESTES ITENS):**
-    *   **AUTOMATICAMENTE DESCARTAR** qualquer item que descreva, primariamente, eventos de:
-        *   **HISTÓRIA GERAL:** Guerras, batalhas, política, realeza, tratados, fundação de nações, exploração geográfica *não tecnológica*.
-        *   **ESPORTES:** Competições, recordes, inauguração de instalações esportivas, **automobilismo (corridas, autódromos)**, eventos atléticos.
-        *   **CULTURA GERAL:** Arte tradicional, literatura não-geek/fantasia/sci-fi, gastronomia, moda, eventos sociais ou cerimônias.
-        *   **DESASTRES NATURAIS.**
-        *   **INFRAESTRUTURA GERAL:** Construção de pontes, edifícios não tecnológicos, ou sistemas de transporte público *se não houver uma inovação tecnológica disruptiva evidente como foco central*.
-    *   **NÃO CONSIDERE estes itens para seleção final. Eles SÃO INVÁLIDOS.**
-
-2.  **FOCO TEMÁTICO RESTRITO (SÓ APÓS DESQUALIFICAÇÃO):**
-    *   Dos itens *não desqualificados* no passo 1, selecione apenas aqueles cujo foco principal e intrínseco se alinhe *EXCLUSIVAMENTE* a:
-        *   **Tecnologia:** hardware, software, internet, **IA (Inteligência Artificial)**, robótica, ciência da computação, cibersegurança, telecomunicações, eletrônica, exploração espacial (foco tecnológico).
-        *   **Cultura Geek:** filmes, séries, quadrinhos, **JOGOS ELETRÔNICOS (videogames)**, RPGs, animes, mangás, e-sports, universos de ficção/fantasia.
-        *   **Cultura Nerd (MUITO RESTRITA):** Avanços científicos *fundamentais diretamente aplicáveis ou relacionados à tecnologia*, história da computação, criptografia, ou hobbies intelectuais que são *inherentemente computacionais ou científicos-tecnológicos*. **Não é sobre conhecimento geral ou áreas acadêmicas amplas.**
-        *   **Programação:** linguagens, algoritmos, desenvolvimento de software, bugs, exploits, arquitetura de sistemas.
-
-3.  **CONEXÃO COM A DATA (${day} de ${month}):**
-    *   Dos itens que passaram nos passos 1 e 2, escolha os que têm uma **conexão clara e direta com o dia ${day} de ${month}**. (O ano é irrelevante, dia e mês são CRUCIAIS).
-
-4.  **RELEVÂNCIA E CURIOSIDADE (DESEMPATE FINAL):**
-    *   Entre os itens restantes, selecione o que tem a **MAIOR SIGNIFICÂNCIA, IMPACTO DURADOURO ou PECULIARIDADE** dentro dos temas definidos. Priorize marcos transformadores (ex: fundação da OpenAI, lançamentos de tecnologias disruptivas) sobre fatos menores.
-
-**FORMATO DE SAÍDA OBRIGATÓRIO:**
-
-**Retorne SOMENTE o número inteiro do index (0-baseado) do item escolhido.**
-*   **EXEMPLO DE SAÍDA VÁLIDA: 12**
-*   **NENHUM TEXTO, NENHUMA EXPLICAÇÃO, NENHUMA FORMATAÇÃO EXTRA.**
-*   **VOCÊ DEVE SEMPRE RETORNAR UM index VÁLIDO.** Se a lista for fraca, selecione o item que melhor atende aos critérios, seguindo a ordem de prioridade 1 > 2 > 3 > 4.
-
-`
 let index_responseSchema = {
       type: Type.OBJECT,
       properties: {
@@ -224,45 +200,14 @@ let obj = JSON.parse(geminiResponse.replace("undefined" , ""));
 let best_fact = facts[obj.index]
 loadingAnimation('', 'stop');
 
-let format_fact_system_instructions = `ATENÇÃO MÁXIMA: Seu papel é atuar como um redator especializado em fatos curiosos de tecnologia, cultura geek, nerd e programação. Sua tarefa é gerar uma breve e envolvente 'curiosidade' formatada para o dia ${day} de ${month}, utilizando as informações do item JSON que será fornecido.
 
-INSTRUÇÕES PARA GERAÇÃO DO TEXTO (Processamento CRÍTICO):
+filePath = "./prompts/format_fact_system_instructions.txt";
+content = fs.readFileSync(filePath, "utf8");
+content = content
+  .replace(/\$\{day\}/g, day)
+  .replace(/\$\{month\}/g, month);
 
-    INPUT: Você receberá APENAS UM item no formato JSON, que já foi previamente selecionado como o mais adequado.
-
-    EXTRAÇÃO E REESCRITA:
-
-        Extraia o ano do acontecimento do snippet (geralmente no início do texto ou em uma tag de ano, como <a href="/wiki/YYYY").
-
-        Extraia a essência do acontecimento principal do snippet e, se necessário, do title.
-
-        Reescreva o conteúdo de forma clara, concisa e envolvente.
-
-        INCLUA O ANO EXTRAÍDO NO INÍCIO DO TEXTO DA CURIOSIDADE (logo após a data no prefixo Curiosidade para o dia ${day} de ${month}: ).
-
-        O foco deve ser no aspecto curioso, inovador, ou impactante do acontecimento para os temas de tecnologia, cultura geek, nerd ou programação.
-
-        Evite a repetição literal do texto do snippet. Para o exemplo da OpenAI, foque em "fundação" e "impacto na IA/ChatGPT".
-
-        Certifique-se de que a curiosidade seja compreensível para um público geral, evitando jargões excessivos ou complexidade desnecessária.
-
-    CONCISÃO: O texto do acontecimento curioso (a parte que vai após "Curiosidade para o dia ${day} de ${month}: ") DEVE TER ENTRE 20 E 50 PALAVRAS.
-
-FORMATO DE SAÍDA OBRIGATÓRIO (SOMENTE O TEXTO FINAL):
-
-Sua resposta DEVE SER UNICAMENTE uma string de texto seguindo o formato EXATO abaixo:
-
-Curiosidade para o dia ${day} de ${month}: [ANO], [Texto do acontecimento curiosamente reescrito].
-
-    NÃO inclua nenhuma formatação markdown (negrito, itálico, links), aspas extras, ou qualquer outro texto ou caractere além do formato especificado.
-
-    O texto final deve ser uma única linha.
-
-    EXEMPLO DE SAÍDA VÁLIDA (para o exemplo da OpenAI):
-    Curiosidade para o dia ${day} de ${month}: 2015, Foi fundada a OpenAI, a empresa que se tornaria uma força motriz na inteligência artificial, desenvolvendo modelos como o ChatGPT e transformando o cenário tecnológico global.
-
-    EXEMPLO DE SAÍDA VÁLIDA (para o Mars Global Surveyor, usando seu exemplo):
-    Curiosidade para o dia ${day} de ${month}: 1997, A sonda espacial Mars Global Surveyor da NASA alcançou Marte, iniciando uma década de exploração detalhada que revelou paisagens marcianas impressionantes e ajudou a desvendar a história do Planeta Vermelho.`
+let format_fact_system_instructions = content
 
  
 let string_responseSchema = {
