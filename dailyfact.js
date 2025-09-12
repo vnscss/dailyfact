@@ -4,12 +4,13 @@ import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
 import * as fs from "fs";
 
-
+console.clear();
 
 let args = process.argv.slice(2);
 
 let dValue = null;
 let mValue = null;
+let modeValue = null;
 
 for (let i = 0; i < args.length; i++) {
     if (args[i] === "-d") {
@@ -18,8 +19,12 @@ for (let i = 0; i < args.length; i++) {
     } else if (args[i] === "-m") {
         mValue = args[i + 1];
         i++;
+    }else if (args[i] === "-mode") {
+        modeValue = Number(args[i + 1]);
+        i++;
     }
 }
+
 
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
@@ -172,17 +177,27 @@ async function gemini(system_instructions , promptString , responseSchema){
     return fullText;
 }
 
+let filePath 
+let index_responseSchema 
 
+if(modeValue === 2){
+  filePath = "./prompts/select_3_best_fact_system_instructions.txt"
+  index_responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        index: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.INTEGER,
+            },
+          },
+        },
+      }
+}
+else{
+  filePath = "./prompts/select_best_fact_system_instructions.txt";
 
-let filePath = "./prompts/select_best_fact_system_instructions.txt";
-let content = fs.readFileSync(filePath, "utf8");
-content = content
-  .replace(/\$\{day\}/g, day)
-  .replace(/\$\{month\}/g, month);
-
-let select_best_fact_system_instructions = content
-
-let index_responseSchema = {
+  index_responseSchema = {
       type: Type.OBJECT,
       properties: {
         index: {
@@ -190,27 +205,60 @@ let index_responseSchema = {
         },
       },
     }
+}
+
+let content = fs.readFileSync(filePath, "utf8");
+content = content
+  .replace(/\$\{day\}/g, day)
+  .replace(/\$\{month\}/g, month);
+
+let select_best_fact_system_instructions = content
+
 
 loadingAnimation('Separando melhor fato', 'start');
 let geminiResponse = await gemini(select_best_fact_system_instructions , JSON.stringify(facts) , index_responseSchema)
 
 let obj = JSON.parse(geminiResponse.replace("undefined" , "")); 
 
+let best_fact 
+let string_responseSchema 
+if(modeValue === 2){
 
-let best_fact = facts[obj.index]
-loadingAnimation('', 'stop');
+  let best_facts = []
+  obj.index.map( index => {
+    best_facts.push(facts[index])
+  })
+  
+  best_fact = best_facts
+
+  filePath = "./prompts/format_3_facts_system_instructions.txt";
+
+  string_responseSchema =  {
+  type: Type.OBJECT,
+  properties: {
+    response: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          text: { type: Type.STRING },
+          index: { type: Type.INTEGER }
+        }
+      }
+    }
+  }
+}
 
 
-filePath = "./prompts/format_fact_system_instructions.txt";
-content = fs.readFileSync(filePath, "utf8");
-content = content
-  .replace(/\$\{day\}/g, day)
-  .replace(/\$\{month\}/g, month);
 
-let format_fact_system_instructions = content
 
- 
-let string_responseSchema = {
+}
+else{
+  best_fact = facts[obj.index]
+
+  filePath = "./prompts/format_fact_system_instructions.txt";
+
+  string_responseSchema =  {
       type: Type.OBJECT,
       properties: {
         response: {
@@ -218,29 +266,76 @@ let string_responseSchema = {
         },
       },
     }
+}
+
+loadingAnimation('', 'stop');
+
+
+content = fs.readFileSync(filePath, "utf8");
+content = content
+  .replace(/\$\{day\}/g, day)
+  .replace(/\$\{month\}/g, month);
+
+let format_fact_system_instructions = content
 
 loadingAnimation('Formatando resposta', 'start');
 let finalGeminiResponse = await gemini(format_fact_system_instructions , JSON.stringify(best_fact) , string_responseSchema)
 
 
 finalGeminiResponse = JSON.parse(finalGeminiResponse.replace("undefined" , "")); 
-finalGeminiResponse = finalGeminiResponse.response;
-
-let fonte = best_fact.link;
-
 
 loadingAnimation('', 'stop');
 
-console.clear();
+if(modeValue === 2){
 
-console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
-console.log(`\x1b[1m${finalGeminiResponse}\x1b[0m`); // snippet em negrito
+  finalGeminiResponse = finalGeminiResponse.response;
 
-if(fonte){
-    console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
+
+  console.clear();
+
+  finalGeminiResponse.map( fact =>{
+    let text = fact.text
+    let index = fact.index
+
+    console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
+    console.log(`\x1b[1m${text}\x1b[0m`); // snippet em negrito
+
+    let fonte = null
+
+    if(best_fact[index]?.link){
+      fonte = best_fact[index].link
+    }
+
+    if(fonte){
+        console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
+    }
+    if(!fonte){
+        console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
+    }
+
+    console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
+
+
+  })
 }
-if(!fonte){
-    console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
-}
+else{
 
-console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
+  finalGeminiResponse = finalGeminiResponse.response;
+  let fonte = best_fact.link;
+
+  console.clear();
+
+  console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
+  console.log(`\x1b[1m${finalGeminiResponse}\x1b[0m`); // snippet em negrito
+
+  if(fonte){
+      console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
+  }
+  if(!fonte){
+      console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
+  }
+
+  console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
+
+
+}

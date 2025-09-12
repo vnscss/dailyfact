@@ -1,0 +1,39 @@
+**Sua tarefa é selecionar um array com os indexes (0-baseado) dos até 3 melhores itens que representam acontecimentos curiosos sobre Tecnologia, Cultura Geek, Cultura Nerd, ou Programação, especificamente para o dia ${day} de ${month}.**
+
+**REGRAS DE SELEÇÃO OBRIGATÓRIAS (Processamento Sequencial):**
+
+1.  **DESQUALIFICAÇÃO IMEDIATA (IGNORAR ESTES ITENS):**
+    *   **AUTOMATICAMENTE DESCARTAR** qualquer item que descreva, primariamente, eventos de:
+        *   **HISTÓRIA GERAL:** Guerras, batalhas, política, realeza, tratados, fundação de nações, exploração geográfica *não tecnológica*.
+        *   **ESPORTES:** Competições, recordes, inauguração de instalações esportivas, **automobilismo (corridas, autódromos)**, eventos atléticos.
+        *   **CULTURA GERAL:** Arte tradicional, literatura não-geek/fantasia/sci-fi, gastronomia, moda, eventos sociais ou cerimônias.
+        *   **DESASTRES NATURAIS.**
+        *   **INFRAESTRUTURA GERAL:** Construção de pontes, edifícios não tecnológicos, ou sistemas de transporte público *se não houver uma inovação tecnológica disruptiva evidente como foco central*.
+    *   **NÃO CONSIDERE estes itens para a seleção final. Eles SÃO INVÁLIDOS.**
+
+2.  **FOCO TEMÁTICO RESTRITO (SÓ APÓS DESQUALIFICAÇÃO):**
+    *   Dos itens *não desqualificados* no passo 1, selecione apenas aqueles cujo foco principal e intrínseco se alinhe *EXCLUSIVAMENTE* a:
+        *   **Tecnologia:** hardware, software, internet, **IA (Inteligência Artificial)**, robótica, ciência da computação, cibersegurança, telecomunicações, eletrônica, exploração espacial (foco tecnológico).
+        *   **Cultura Geek:** filmes, séries, quadrinhos, **JOGOS ELETRÔNICOS (videogames)**, RPGs, animes, mangás, e-sports, universos de ficção/fantasia.
+        *   **Cultura Nerd (MUITO RESTRITA):** Avanços científicos *fundamentais diretamente aplicáveis ou relacionados à tecnologia*, história da computação, criptografia, ou hobbies intelectuais que são *inherentemente computacionais ou científicos-tecnológicos*. **Não é sobre conhecimento geral ou áreas acadêmicas amplas.**
+        *   **Programação:** linguagens, algoritmos, desenvolvimento de software, bugs, exploits, arquitetura de sistemas.
+
+3.  **CONEXÃO COM A DATA (${day} de ${month}):**
+    *   Dos itens que passaram nos passos 1 e 2, escolha os que têm uma **conexão clara e direta com o dia ${day} de ${month}**. (O ano é irrelevante, dia e mês são CRUCIAIS).
+
+4.  **RANKING E SELEÇÃO FINAL (TOP 3):**
+    *   Dos itens restantes (os "candidatos válidos"), crie um ranking baseado na **MAIOR RELEVÂNCIA, IMPACTO HISTÓRICO ou CURIOSIDADE** dentro dos temas definidos.
+    *   Priorize marcos transformadores (ex: lançamento do primeiro iPhone, publicação do paper do Bitcoin, estreia de Star Wars) sobre fatos menores (ex: lançamento de uma versão secundária de um software, aniversário de um personagem menos conhecido).
+    *   Selecione os indexes dos **até 3 itens** mais bem ranqueados.
+    *   **CASOS ESPECIAIS:** Se houver menos de 3 candidatos válidos, retorne todos os que forem válidos, sempre ordenados pela relevância. Se não houver nenhum candidato válido, retorne um array vazio.
+
+**FORMATO DE SAÍDA OBRIGATÓRIO:**
+
+**Retorne SOMENTE um array de números inteiros contendo os indexes (0-baseado) dos itens escolhidos.**
+*   O array deve ser ordenado do item **mais relevante para o menos relevante**.
+*   **EXEMPLOS DE SAÍDA VÁLIDA:**
+    *   `[12, 5, 2]` (quando há 3 ou mais itens válidos)
+    *   `[8, 1]` (quando há exatamente 2 itens válidos)
+    *   `[4]` (quando há exatamente 1 item válido)
+    *   `[]` (quando não há nenhum item válido)
+*   **NENHUM TEXTO, NENHUMA EXPLICAÇÃO, NENHUMA FORMATAÇÃO EXTRA.**
