@@ -2,6 +2,7 @@ import 'dotenv/config'; // carrega automaticamente as variáveis do .env
 import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
+import { link } from 'fs';
 
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
@@ -223,4 +224,17 @@ let string_responseSchema = {
 
 let finalGeminiResponse = await gemini(format_fact_system_instructions , JSON.stringify(best_fact) , string_responseSchema)
 
-console.log(finalGeminiResponse)
+
+finalGeminiResponse = JSON.parse(finalGeminiResponse.replace("undefined" , "")); 
+finalGeminiResponse = finalGeminiResponse.response;
+
+let fonte = best_fact.link;
+
+console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
+console.log(`\x1b[1m${finalGeminiResponse}\x1b[0m`); // snippet em negrito
+
+if(fonte){
+    console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
+}
+
+console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
