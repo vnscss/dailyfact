@@ -3,9 +3,29 @@ import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
 
+
+let args = process.argv.slice(2);
+
+let dValue = null;
+let mValue = null;
+
+for (let i = 0; i < args.length; i++) {
+    if (args[i] === "-d") {
+        dValue = Number(args[i + 1]);
+        i++; // pula o próximo porque já pegamos o valor
+    } else if (args[i] === "-m") {
+        mValue = args[i + 1];
+        i++;
+    }
+}
+
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
 let day = data.getDate();
+
+if (dValue) day = dValue;
+if (mValue) month = mValue;
+
 
 
 const apiKey = process.env.GOOGLE_SEARCH_API;
