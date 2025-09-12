@@ -1,0 +1,27 @@
+{
+  "name": "dailyfact",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dailyfact.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vnscss/dailyfact.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vnscss/dailyfact/issues"
+  },
+  "homepage": "https://github.com/vnscss/dailyfact#readme",
+  "type": "module",
+  "dependencies": {
+    "@google/genai": "^1.19.0",
+    "dotenv": "^17.2.2",
+    "googleapis": "^159.0.0",
+    "jsdom": "^26.1.0"
+  }
+}
