@@ -1,6 +1,7 @@
 import 'dotenv/config'; // carrega automaticamente as variáveis do .env
 import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
+import { JSDOM }  from "jsdom";
 
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
@@ -20,20 +21,23 @@ let facts = [];
 let wiki_url = `https://pt.wikipedia.org/wiki/${day}_de_${month}`;
 let wiki_document = await fetch(wiki_url).then(res => res.text());
 
-wiki_document = wiki_document.match(/<ul(?![^>]*(class|id))>([\s\S]*?)<\/ul>/);
 
-wiki_document[0].split("<li>").slice(1).map(fact => {
-    let snippet = fact.replace("</li>", "").replace('</ul>' , "")
+let dom = new JSDOM(wiki_document);
+let document = dom.window.document;
 
-    let single_fact = {
-        title: null,
-        snippet: snippet,
-        link: null,
+let ul = document.querySelector("ul:not([class]):not([id])");
+
+let lis = Array.from(ul.children); 
+
+lis.forEach(li => {
+    if (li.tagName === "LI") {
+        facts.push({
+            title: null,
+            link: null,
+            snippet: li.textContent
+        });
     }
-
-    facts.push(single_fact)
 });
-
 
 
 let customsearch = google.customsearch('v1');
@@ -65,7 +69,56 @@ facts.forEach((fact, index) => {
   fact.index = index; 
 });
 
-let system_instructions = `**Sua tarefa é selecionar o index (0-baseado) do único item que representa um acontecimento curioso sobre Tecnologia, Cultura Geek, Cultura Nerd, ou Programação, especificamente para o dia ${day} de ${month}.**
+
+
+async function gemini(system_instructions , promptString , responseSchema){
+
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+  });
+  const config = {
+    thinkingConfig: {
+      thinkingBudget: 0,
+    },
+    responseMimeType: 'application/json',
+    responseSchema: responseSchema,
+    systemInstruction: [
+        {
+          text: `${system_instructions}`,
+        }
+    ],
+  };
+
+  const model = 'gemini-2.5-flash';
+  const contents = [
+    {
+      role: 'user',
+      parts: [
+        {
+          text: promptString,
+        },
+      ],
+    },
+  ];
+
+  const response = await ai.models.generateContentStream({
+    model,
+    config,
+    contents,
+  });
+
+    let fullText = "";
+
+    for await (const chunk of response) {
+    fullText += chunk.text;
+    }
+
+    return fullText;
+}
+
+
+
+let select_best_fact_system_instructions = `**Sua tarefa é selecionar o index (0-baseado) do único item que representa um acontecimento curioso sobre Tecnologia, Cultura Geek, Cultura Nerd, ou Programação, especificamente para o dia ${day} de ${month}.**
 
 **REGRAS DE SELEÇÃO OBRIGATÓRIAS (Processamento Sequencial):**
 
@@ -99,61 +152,75 @@ let system_instructions = `**Sua tarefa é selecionar o index (0-baseado) do ún
 *   **VOCÊ DEVE SEMPRE RETORNAR UM index VÁLIDO.** Se a lista for fraca, selecione o item que melhor atende aos critérios, seguindo a ordem de prioridade 1 > 2 > 3 > 4.
 
 `
-
-
-
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-  });
-  const config = {
-    thinkingConfig: {
-      thinkingBudget: 0,
-    },
-    responseMimeType: 'application/json',
-    responseSchema: {
+let index_responseSchema = {
       type: Type.OBJECT,
       properties: {
         index: {
           type: Type.NUMBER,
         },
       },
-    },
-    systemInstruction: [
-        {
-          text: `${system_instructions}`,
-        }
-    ],
-  };
-
-  const model = 'gemini-2.5-flash';
-  const contents = [
-    {
-      role: 'user',
-      parts: [
-        {
-          text: JSON.stringify(facts),
-        },
-      ],
-    },
-  ];
-
-  const response = await ai.models.generateContentStream({
-    model,
-    config,
-    contents,
-  });
-
-    let fullText = "";
-
-    for await (const chunk of response) {
-    fullText += chunk.text;
     }
 
 
+let geminiResponse = await gemini(select_best_fact_system_instructions , JSON.stringify(facts) , index_responseSchema)
+
+let obj = JSON.parse(geminiResponse.replace("undefined" , "")); 
 
 
+let best_fact = facts[obj.index]
 
-let obj = JSON.parse(fullText.replace("undefined" , "")); 
-console.log(obj.index)
-console.log(facts[obj.index])
 
+let format_fact_system_instructions = `ATENÇÃO MÁXIMA: Seu papel é atuar como um redator especializado em fatos curiosos de tecnologia, cultura geek, nerd e programação. Sua tarefa é gerar uma breve e envolvente 'curiosidade' formatada para o dia ${day} de ${month}, utilizando as informações do item JSON que será fornecido.
+
+INSTRUÇÕES PARA GERAÇÃO DO TEXTO (Processamento CRÍTICO):
+
+    INPUT: Você receberá APENAS UM item no formato JSON, que já foi previamente selecionado como o mais adequado.
+
+    EXTRAÇÃO E REESCRITA:
+
+        Extraia o ano do acontecimento do snippet (geralmente no início do texto ou em uma tag de ano, como <a href="/wiki/YYYY").
+
+        Extraia a essência do acontecimento principal do snippet e, se necessário, do title.
+
+        Reescreva o conteúdo de forma clara, concisa e envolvente.
+
+        INCLUA O ANO EXTRAÍDO NO INÍCIO DO TEXTO DA CURIOSIDADE (logo após a data no prefixo Curiosidade para o dia ${day} de ${month}: ).
+
+        O foco deve ser no aspecto curioso, inovador, ou impactante do acontecimento para os temas de tecnologia, cultura geek, nerd ou programação.
+
+        Evite a repetição literal do texto do snippet. Para o exemplo da OpenAI, foque em "fundação" e "impacto na IA/ChatGPT".
+
+        Certifique-se de que a curiosidade seja compreensível para um público geral, evitando jargões excessivos ou complexidade desnecessária.
+
+    CONCISÃO: O texto do acontecimento curioso (a parte que vai após "Curiosidade para o dia ${day} de ${month}: ") DEVE TER ENTRE 20 E 50 PALAVRAS.
+
+FORMATO DE SAÍDA OBRIGATÓRIO (SOMENTE O TEXTO FINAL):
+
+Sua resposta DEVE SER UNICAMENTE uma string de texto seguindo o formato EXATO abaixo:
+
+Curiosidade para o dia ${day} de ${month}: [ANO], [Texto do acontecimento curiosamente reescrito].
+
+    NÃO inclua nenhuma formatação markdown (negrito, itálico, links), aspas extras, ou qualquer outro texto ou caractere além do formato especificado.
+
+    O texto final deve ser uma única linha.
+
+    EXEMPLO DE SAÍDA VÁLIDA (para o exemplo da OpenAI):
+    Curiosidade para o dia ${day} de ${month}: 2015, Foi fundada a OpenAI, a empresa que se tornaria uma força motriz na inteligência artificial, desenvolvendo modelos como o ChatGPT e transformando o cenário tecnológico global.
+
+    EXEMPLO DE SAÍDA VÁLIDA (para o Mars Global Surveyor, usando seu exemplo):
+    Curiosidade para o dia ${day} de ${month}: 1997, A sonda espacial Mars Global Surveyor da NASA alcançou Marte, iniciando uma década de exploração detalhada que revelou paisagens marcianas impressionantes e ajudou a desvendar a história do Planeta Vermelho.`
+
+ 
+let string_responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        response: {
+          type: Type.STRING,
+        },
+      },
+    }
+
+
+let finalGeminiResponse = await gemini(format_fact_system_instructions , JSON.stringify(best_fact) , string_responseSchema)
+
+console.log(finalGeminiResponse)
