@@ -304,13 +304,11 @@ if(modeValue === 2){
 
     if(best_fact[index]?.link){
       fonte = best_fact[index].link
-    }
 
-    if(fonte){
-        console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
+      console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
     }
-    if(!fonte){
-        console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
+    else{
+       console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
     }
 
     console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
