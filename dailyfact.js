@@ -2,7 +2,6 @@ import 'dotenv/config'; // carrega automaticamente as variáveis do .env
 import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
-import { link } from 'fs';
 
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
@@ -17,9 +16,41 @@ let google_search_string = `"em ${day} de ${month}" (tecnologia OR ciência OR i
 let facts = [];
 
 
+
+
+let loadingInterval;
+
+function loadingAnimation(message, action) {
+    const spinnerFrames = ['|', '/', '-', '\\'];
+    let i = 0;
+
+    if (action === 'start') {
+        process.stdout.write(message + ' ');
+
+        loadingInterval = setInterval(() => {
+            process.stdout.write('\b' + spinnerFrames[i]);
+            i = (i + 1) % spinnerFrames.length;
+        }, 100); // Update every 100ms
+    } else if (action === 'stop') {
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+            process.stdout.write('\b'); // Erase spinner
+            console.log(message + ' Done!');
+        }
+    } else {
+        console.log('Invalid action. Use "start" or "stop".');
+    }
+}
+
+
+
+
+
 //Fatos da wiki
 
 let wiki_url = `https://pt.wikipedia.org/wiki/${day}_de_${month}`;
+loadingAnimation('Pegando fatos da wiki', 'start');
 let wiki_document = await fetch(wiki_url).then(res => res.text());
 
 
@@ -39,10 +70,12 @@ lis.forEach(li => {
         });
     }
 });
-
+loadingAnimation('', 'stop');
 
 let customsearch = google.customsearch('v1');
 
+
+loadingAnimation('Pegando fatos do google', 'start');
 try {
 const res = await customsearch.cse.list({
     auth: apiKey,
@@ -65,7 +98,7 @@ if (items) {
 } catch (err) {
 }
 
-
+loadingAnimation('', 'stop');
 facts.forEach((fact, index) => {
   fact.index = index; 
 });
@@ -162,14 +195,14 @@ let index_responseSchema = {
       },
     }
 
-
+loadingAnimation('Separando melhor fato', 'start');
 let geminiResponse = await gemini(select_best_fact_system_instructions , JSON.stringify(facts) , index_responseSchema)
 
 let obj = JSON.parse(geminiResponse.replace("undefined" , "")); 
 
 
 let best_fact = facts[obj.index]
-
+loadingAnimation('', 'stop');
 
 let format_fact_system_instructions = `ATENÇÃO MÁXIMA: Seu papel é atuar como um redator especializado em fatos curiosos de tecnologia, cultura geek, nerd e programação. Sua tarefa é gerar uma breve e envolvente 'curiosidade' formatada para o dia ${day} de ${month}, utilizando as informações do item JSON que será fornecido.
 
@@ -221,7 +254,7 @@ let string_responseSchema = {
       },
     }
 
-
+loadingAnimation('Formatando resposta', 'start');
 let finalGeminiResponse = await gemini(format_fact_system_instructions , JSON.stringify(best_fact) , string_responseSchema)
 
 
@@ -229,6 +262,11 @@ finalGeminiResponse = JSON.parse(finalGeminiResponse.replace("undefined" , ""));
 finalGeminiResponse = finalGeminiResponse.response;
 
 let fonte = best_fact.link;
+
+
+loadingAnimation('', 'stop');
+
+console.clear();
 
 console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
 console.log(`\x1b[1m${finalGeminiResponse}\x1b[0m`); // snippet em negrito
