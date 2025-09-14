@@ -23,6 +23,8 @@ let google_search_string = `"em ${day} de ${month}" (tecnologia OR ciência OR i
 let facts = [];
 let best_facts = [];
 
+let outdev = null;
+
 
 const main = async () => {
 
@@ -31,6 +33,7 @@ const main = async () => {
     let dValue = null;
     let mValue = null;
     let modeValue = null;
+    let dev = null
 
     for (let i = 0; i < args.length; i++) {
         if (args[i] === "-d") {
@@ -41,6 +44,10 @@ const main = async () => {
             i++;
         }else if (args[i] === "-mode") {
             modeValue = Number(args[i + 1]);
+            i++;
+        }else if (args[i] === "-dev") {
+            dev = 1;
+            outdev = 1;
             i++;
         }
     }
@@ -185,9 +192,36 @@ const main = async () => {
 
     console.clear()
 
-    fromated_response.map(fact => {
-      drawFact(fact);
-    });
+
+
+    switch (dev) {
+      case 1:
+        let facts_JSON = []
+
+        fromated_response.map(obj => {
+          
+          let text = obj.text
+          let fonte = facts?.[obj.index].link;
+
+          let fato = {
+            text: text,
+            fonte: fonte
+          }
+
+          facts_JSON.push(fato)
+          
+        });
+
+        console.log(facts_JSON)
+
+        break;
+    
+      default:
+        fromated_response.map(fact => {
+          drawFact(fact);
+        });
+        break;
+    }
 
 
 }
@@ -196,6 +230,11 @@ const main = async () => {
 let loadingInterval;
 
 function loadingAnimation(message, action) {
+
+    if(outdev){
+      return
+    }
+
     const spinnerFrames = ['|', '/', '-', '\\'];
     let i = 0;
 
@@ -289,19 +328,17 @@ function drawFact(obj){
   let text = obj.text
   let fonte = facts?.[obj.index].link;
 
-
   console.log("\n\x1b[1;34m===== Curiosidade do Dia =====\x1b[0m"); // título azul e em negrito
   console.log(`\x1b[1m${text}\x1b[0m`); // snippet em negrito
 
   if(fonte){
       console.log(`\x1b[36mFonte:\x1b[0m ${fonte}`); // 'Fonte:' ciano
   }
-  if(!fonte){
-      console.log(`\x1b[36mFonte:\x1b[0m https://www.wikipedia.org/`); // 'Fonte:' ciano
-  }
 
   console.log("\x1b[1;34m============================\x1b[0m\n"); // linha azul
 
 }
+
+
 
 await main();
