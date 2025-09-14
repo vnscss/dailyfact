@@ -1,8 +1,17 @@
-import 'dotenv/config'; // carrega automaticamente as variáveis do .env
+import * as dotenv from "dotenv";
 import { google } from 'googleapis';
 import {GoogleGenAI,Type,} from '@google/genai';
 import { JSDOM }  from "jsdom";
 import * as fs from "fs";
+import { fileURLToPath } from 'url';
+
+import { dirname , join } from 'path';
+
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, ".env") });
 
 console.clear();
 
@@ -181,7 +190,7 @@ let filePath
 let index_responseSchema 
 
 if(modeValue === 2){
-  filePath = "./prompts/select_3_best_fact_system_instructions.txt"
+  filePath = `${__dirname}/prompts/select_3_best_fact_system_instructions.txt`
   index_responseSchema = {
       type: Type.OBJECT,
       properties: {
@@ -195,7 +204,7 @@ if(modeValue === 2){
       }
 }
 else{
-  filePath = "./prompts/select_best_fact_system_instructions.txt";
+  filePath = `${__dirname}/prompts/select_best_fact_system_instructions.txt`;
 
   index_responseSchema = {
       type: Type.OBJECT,
@@ -231,7 +240,7 @@ if(modeValue === 2){
   
   best_fact = best_facts
 
-  filePath = "./prompts/format_3_facts_system_instructions.txt";
+  filePath = `${__dirname}/prompts/format_3_facts_system_instructions.txt`;
 
   string_responseSchema =  {
   type: Type.OBJECT,
@@ -256,7 +265,7 @@ if(modeValue === 2){
 else{
   best_fact = facts[obj.index]
 
-  filePath = "./prompts/format_fact_system_instructions.txt";
+  filePath = `${__dirname}/prompts/format_fact_system_instructions.txt`;
 
   string_responseSchema =  {
       type: Type.OBJECT,
