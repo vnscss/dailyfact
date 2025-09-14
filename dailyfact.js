@@ -6,11 +6,11 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 import { dirname , join } from 'path';
 
+console.clear()
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, ".env") });
-
 
 let data = new Date();
 let month = data.toLocaleString("pt" , { month: 'long'});
@@ -182,6 +182,8 @@ const main = async () => {
     
     fromated_response = formatAsJson(geminiResponse);
     fromated_response = fromated_response.response;
+
+    console.clear()
 
     fromated_response.map(fact => {
       drawFact(fact);
