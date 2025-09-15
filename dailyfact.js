@@ -205,7 +205,8 @@ const main = async () => {
 
           let fato = {
             text: text,
-            fonte: fonte
+            fonte: fonte,
+            data: data
           }
 
           facts_JSON.push(fato)
