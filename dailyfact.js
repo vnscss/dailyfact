@@ -212,7 +212,7 @@ const main = async () => {
           
         });
 
-        console.log(facts_JSON)
+        console.log(JSON.stringify(facts_JSON))
 
         break;
     
@@ -341,4 +341,14 @@ function drawFact(obj){
 
 
 
-await main();
+try {
+  await main();
+} catch (error) {
+  console.log(`
+    [
+      {
+      error : "${JSON.stringify(error)}"
+      }
+    ]`)  
+}
+
