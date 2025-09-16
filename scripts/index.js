@@ -14,6 +14,11 @@
             const p = document.createElement('p');
             p.textContent = fact.text;
             document.body.appendChild(p);
+
+            const a = document.createElement('a');
+            a.textContent = fact.fonte;
+            a.href = fact.fonte;
+            document.body.appendChild(a);
         }
         else{
             const p = document.createElement('p');

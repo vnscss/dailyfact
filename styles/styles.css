@@ -18,6 +18,7 @@
     --font-size-body: 1.1rem;
     --line-height-body: 1.8; /* More breathing room */
     --letter-spacing-body: 0.04em; /* Slightly wider for a digital feel */
+    --font-size-small: 0.85rem; /* For the link text */
 
     /* Animation Speeds */
     --animation-duration-entrance: 1s;
@@ -45,6 +46,7 @@ body {
     color: var(--text-primary);
     background-color: var(--background-darkest); /* Starting with true black */
     display: flex;
+    flex-direction: column; /* Changed to column to stack p and a */
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -68,11 +70,35 @@ p {
     font-weight: 300; /* Light font weight for elegance */
     position: relative; /* For z-index if background animations overlap */
     z-index: 10; /* Ensure content is above background animations */
+    margin-bottom: 1.5rem; /* Add space between paragraph and link */
 
     /* Entrance Animation */
     animation: cardEntrance var(--animation-duration-entrance) cubic-bezier(0.23, 1, 0.32, 1) forwards; /* More snappy */
     opacity: 0;
     transform: translateY(15px) scale(0.98);
+}
+
+/* --- Link Styling --- */
+a {
+    color: var(--accent-glow); /* Use accent color for links */
+    text-decoration: none; /* Remove underline by default */
+    font-size: var(--font-size-small); /* Slightly smaller for secondary info */
+    letter-spacing: 0.08em; /* A bit more pronounced letter spacing for links */
+    font-weight: 400; /* A bit bolder than the light paragraph text */
+    position: relative;
+    z-index: 10; /* Ensure link is above background */
+    opacity: 0; /* Start hidden for animation */
+    transform: translateY(10px); /* Slight lift */
+    animation: linkEntrance var(--animation-duration-entrance) 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; /* Delayed entrance */
+    display: inline-block; /* Needed for transform */
+
+    /* Hover effect */
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover {
+    color: var(--text-primary); /* Change color on hover for contrast */
+    text-shadow: 0 0 8px var(--accent-glow), 0 0 15px rgba(0, 255, 255, 0.5); /* Subtle glow on hover */
 }
 
 /* --- Keyframe Animations --- */
@@ -87,6 +113,18 @@ p {
         opacity: 1;
         transform: translateY(0) scale(1);
         box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+    }
+}
+
+/* Link Entrance (new) */
+@keyframes linkEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
