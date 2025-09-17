@@ -35,7 +35,12 @@
 }
 
 html {
-    transform: scale(1.5); /* 90% size */
+    /*
+      REMOVED: transform: scale(1.5);
+      NOTE: Using transform: scale() on the entire HTML element is not a good practice for responsiveness.
+      It can cause pixelation, overflow issues, and inconsistent behavior across browsers.
+      Responsive design is better handled with fluid units, percentages, and media queries (added below).
+    */
     scroll-behavior: smooth;
     font-size: 16px; /* Base for rem units */
 }
@@ -51,7 +56,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 2rem; /* Consistent padding */
+    padding: 2rem; /* Consistent padding for desktop */
     overflow: hidden; /* Important for background animations */
     position: relative; /* Context for absolute background elements */
     -webkit-font-smoothing: antialiased; /* Smoother text rendering */
@@ -61,7 +66,8 @@ body {
 /* --- Content Card (Paragraph) Styling --- */
 p {
     max-width: 650px; /* Optimal width for readability and minimalism */
-    padding: 3rem 3.5rem; /* Generous internal padding */
+    width: 100%; /* Ensure it takes up available space on mobile */
+    padding: 3rem 3.5rem; /* Generous internal padding for desktop */
     background-color: var(--surface-light); /* Subtle surface definition */
     border: 1px solid var(--border-color); /* Very subtle accent border */
     border-radius: 6px; /* Sharper, more "digital" corners */
@@ -183,4 +189,32 @@ body::after {
 ::selection {
     background-color: var(--accent-glow);
     color: var(--background-darkest);
+}
+
+/* ==========================================================================
+   Responsive Styles (Mobile First Approach)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    :root {
+        /* Slightly reduce font size on smaller screens */
+        --font-size-body: 1rem;
+    }
+
+    body {
+        /* Reduce body padding to give content more space */
+        padding: 1.5rem 1rem;
+    }
+
+    p {
+        /* Reduce the card's internal padding significantly for mobile */
+        padding: 2rem 1.5rem;
+    }
+
+    body::after {
+        /* Make the floating orb smaller so it doesn't overwhelm the screen */
+        width: 250px;
+        height: 250px;
+        filter: blur(80px); /* Can slightly reduce blur as well */
+    }
 }
