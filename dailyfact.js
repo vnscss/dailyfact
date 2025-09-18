@@ -18,7 +18,13 @@ let day = data.getDate();
 
 const apiKey = process.env.GOOGLE_SEARCH_API;
 const cx = process.env.GOOGLE_CX_ID;
-let google_search_string = `"em ${day} de ${month}" (tecnologia OR ciência OR inovação OR software OR hardware OR internet OR cibersegurança) site:tecmundo.com.br OR site:canaltech.com.br OR site:olhardigital.com.br OR site:showmetech.com.br OR site:theverge.com OR site:wired.com OR site:engadget.com OR site:techradar.com OR site:arstechnica.com`
+
+let google_search_querie_path = `${__dirname}/search_queries/basicsearch.txt`;
+
+let google_search_string = readPrompt(google_search_querie_path)
+
+console.log(google_search_string)
+
 
 let facts = [];
 let best_facts = [];
