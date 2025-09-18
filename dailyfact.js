@@ -23,7 +23,6 @@ let google_search_querie_path = `${__dirname}/search_queries/basicsearch.txt`;
 
 let google_search_string = readPrompt(google_search_querie_path)
 
-console.log(google_search_string)
 
 
 let facts = [];
